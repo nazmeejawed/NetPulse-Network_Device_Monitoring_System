@@ -31,6 +31,8 @@ class FilterSearchBar extends StatelessWidget {
                 provider.setFilterMode(newSelection.first);
               },
               style: ButtonStyle(
+                padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
+                textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 shape: MaterialStateProperty.all(
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
@@ -46,7 +48,7 @@ class FilterSearchBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: Colors.black12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
                 onChanged: (value) {
                   provider.setSearchQuery(value);

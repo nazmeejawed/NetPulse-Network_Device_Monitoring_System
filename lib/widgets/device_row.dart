@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/ip_device.dart';
 import '../providers/ip_checker_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/edit_ip_dialog.dart';
 
 class DeviceRow extends StatelessWidget {
   final IPDevice device;
@@ -12,8 +13,6 @@ class DeviceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = index % 2 == 0 ? Colors.white : AppTheme.surfaceColor;
-    
     Color statusColor;
     String statusText;
     
@@ -37,10 +36,8 @@ class DeviceRow extends StatelessWidget {
         break;
     }
 
-    Color pingColor = Colors.black87;
-    String pingText = '—';
+    Color pingColor = const Color(0xFF6B7280); // Gray 500
     if (device.status == DeviceStatus.online && device.pingMs != null) {
-      pingText = '${device.pingMs!.toStringAsFixed(0)} ms';
       if (device.pingMs! < 50) {
         pingColor = AppTheme.onlineColor;
       } else if (device.pingMs! < 150) {
@@ -56,57 +53,123 @@ class DeviceRow extends StatelessWidget {
       lastCheckedText = '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:${t.second.toString().padLeft(2, '0')}';
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: bgColor,
-        border: Border(
-          left: BorderSide(color: statusColor, width: 4),
-          bottom: const BorderSide(color: Colors.black12, width: 0.5),
-        ),
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          SizedBox(width: 40, child: Text('${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold))),
+          SizedBox(
+            width: 40,
+            child: Text(
+              '${index + 1}',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ),
           SizedBox(
             width: 100,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: statusColor.withOpacity(0.5)),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                statusText,
-                textAlign: TextAlign.center,
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 300),
                 style: TextStyle(
                   color: statusColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
+                child: Text(statusText, textAlign: TextAlign.center),
               ),
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(flex: 2, child: Text(device.ip, style: const TextStyle(fontWeight: FontWeight.w500))),
-          Expanded(flex: 2, child: Text(device.label)),
           Expanded(
-            flex: 1, 
+            flex: 2,
             child: Text(
-              pingText, 
-              style: TextStyle(color: pingColor, fontWeight: FontWeight.bold),
-            )
+              device.ip,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
           ),
-          Expanded(flex: 1, child: Text(lastCheckedText, style: const TextStyle(color: Colors.black54))),
+          Expanded(
+            flex: 2,
+            child: Text(
+              device.label.isEmpty ? '-' : device.label,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: device.status == DeviceStatus.online && device.pingMs != null
+                ? TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: device.pingMs!),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutQuart,
+                    builder: (context, val, child) {
+                      return Text(
+                        '${val.toStringAsFixed(0)} ms',
+                        style: TextStyle(
+                          color: pingColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
+                  )
+                : Text(
+                    '—',
+                    style: TextStyle(
+                      color: pingColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              lastCheckedText,
+              style: const TextStyle(color: Colors.black54, fontSize: 13),
+            ),
+          ),
           SizedBox(
-            width: 100,
+            width: 120,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  color: AppTheme.primaryColor.withOpacity(0.8),
+                  splashRadius: 20,
+                  tooltip: 'Edit',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => EditIPDialog(device: device),
+                    );
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.refresh, size: 20),
-                  color: Colors.blue,
+                  color: AppTheme.primaryColor.withOpacity(0.6),
+                  splashRadius: 20,
                   tooltip: 'Re-ping',
                   onPressed: () {
                     context.read<IPCheckerProvider>().pingOne(device.id);
@@ -114,10 +177,30 @@ class DeviceRow extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  color: Colors.red,
+                  color: AppTheme.offlineColor.withOpacity(0.8),
+                  splashRadius: 20,
                   tooltip: 'Remove',
                   onPressed: () {
-                    context.read<IPCheckerProvider>().removeDevice(device.id);
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete IP'),
+                        content: Text('Are you sure you want to delete ${device.ip}?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              context.read<IPCheckerProvider>().removeDevice(device.id);
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 ),
               ],

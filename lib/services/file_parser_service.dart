@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
 import '../models/ip_device.dart';
+import 'ping_service.dart';
 
 class ParsedDevice {
   final String ip;
@@ -86,9 +87,9 @@ class FileParserService {
 
       // Simple cleanup
       final ip = ipRaw.replaceAll(RegExp(r'[^\d.]'), '');
-      if (ip.isNotEmpty) {
+      if (ip.isNotEmpty && PingService.isValidIP(ip)) {
         devices.add(IPDevice(
-          id: '\${DateTime.now().microsecondsSinceEpoch}_$i',
+          id: '${DateTime.now().microsecondsSinceEpoch}_$i',
           ip: ip,
           label: label,
         ));

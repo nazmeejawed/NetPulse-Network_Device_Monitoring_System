@@ -9,7 +9,7 @@ class PingProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<IPCheckerProvider>(
       builder: (context, provider, child) {
-        if (!provider.isPinging) {
+        if (!provider.isPinging || provider.isAutoMonitoring) {
           return const SizedBox.shrink();
         }
 

@@ -6,6 +6,9 @@ import '../widgets/progress_bar.dart';
 import '../widgets/filter_search_bar.dart';
 import '../widgets/device_row.dart';
 import '../widgets/add_ip_dialog.dart';
+import '../widgets/category_header.dart';
+import '../models/ip_device.dart';
+import '../theme/app_theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -25,15 +28,26 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const Icon(Icons.wifi, color: Colors.blue),
+            Image.asset('assets/logo.png', height: 42, fit: BoxFit.cover),
             const SizedBox(width: 12),
             const Text(
-              'IP Checker',
+              'Netpulse',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
         actions: [
+          Row(
+            children: [
+              const Text('Live Monitor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87)),
+              Switch(
+                value: provider.isAutoMonitoring,
+                onChanged: (val) => provider.toggleAutoMonitoring(val),
+                activeColor: AppTheme.primaryColor,
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => provider.loadFile(),
             icon: const Icon(Icons.upload_file),
@@ -48,7 +62,11 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(width: 12),
           ElevatedButton.icon(
             onPressed: provider.isPinging || provider.devices.isEmpty ? null : () => provider.pingAll(),
-            icon: const Icon(Icons.play_arrow),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            icon: const Icon(Icons.play_arrow, size: 24),
             label: const Text('Ping All'),
           ),
           const SizedBox(width: 16),
@@ -59,61 +77,95 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (provider.successMessage != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      provider.successMessage!,
-                      style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 20),
-                      color: Colors.green.shade800,
-                      onPressed: () => provider.clearMessages(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) {
+                return SizeTransition(
+                  sizeFactor: animation,
+                  axisAlignment: -1.0,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: provider.successMessage != null
+                  ? Container(
+                      key: const ValueKey('success_msg'),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.onlineColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.onlineColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            provider.successMessage!,
+                            style: const TextStyle(color: AppTheme.onlineColor, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: AppTheme.onlineColor,
+                            onPressed: () => provider.clearMessages(),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('empty_success')),
+            ),
             
-            if (provider.errorMessage != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      provider.errorMessage!,
-                      style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 20),
-                      color: Colors.red.shade800,
-                      onPressed: () => provider.clearMessages(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) {
+                return SizeTransition(
+                  sizeFactor: animation,
+                  axisAlignment: -1.0,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                );
+              },
+              child: provider.errorMessage != null
+                  ? Container(
+                      key: const ValueKey('error_msg'),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.offlineColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppTheme.offlineColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            provider.errorMessage!,
+                            style: const TextStyle(color: AppTheme.offlineColor, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: AppTheme.offlineColor,
+                            onPressed: () => provider.clearMessages(),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('empty_error')),
+            ),
 
             const StatsCards(),
             const SizedBox(height: 16),
@@ -123,47 +175,52 @@ class HomeScreen extends StatelessWidget {
             
             // Table Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.black26, width: 1)),
+                color: Colors.transparent,
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 40, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+                  const SizedBox(width: 40, child: Text('#', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54))),
                   InkWell(
                     onTap: () => context.read<IPCheckerProvider>().toggleSortByStatus(),
                     child: SizedBox(
                       width: 100,
                       child: Row(
                         children: const [
-                          Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Icon(Icons.unfold_more, size: 16),
+                          Text('STATUS', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0)),
+                          Icon(Icons.unfold_more, size: 16, color: Colors.black38),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(flex: 2, child: Text('IP Address', style: TextStyle(fontWeight: FontWeight.bold))),
-                  const Expanded(flex: 2, child: Text('Device Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                  const Expanded(flex: 1, child: Text('Ping (ms)', style: TextStyle(fontWeight: FontWeight.bold))),
-                  const Expanded(flex: 1, child: Text('Last Checked', style: TextStyle(fontWeight: FontWeight.bold))),
-                  const SizedBox(width: 100, child: Text('Actions', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold))),
+                  const Expanded(flex: 2, child: Text('IP ADDRESS', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0))),
+                  const Expanded(flex: 2, child: Text('DEVICE NAME', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0))),
+                  const Expanded(flex: 1, child: Text('PING (MS)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0))),
+                  const Expanded(flex: 1, child: Text('LAST CHECKED', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0))),
+                  const SizedBox(width: 80, child: Text('ACTIONS', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black54, letterSpacing: 1.0))),
                 ],
               ),
             ),
             
             // Table Body
             Expanded(
-              child: provider.filteredDevices.isEmpty
+              child: provider.groupedListItems.isEmpty
                   ? const Center(child: Text('No devices found.'))
                   : ListView.builder(
-                      itemCount: provider.filteredDevices.length,
+                      itemCount: provider.groupedListItems.length,
                       itemBuilder: (context, index) {
-                        return DeviceRow(
-                          device: provider.filteredDevices[index],
-                          index: index,
-                        );
+                        final item = provider.groupedListItems[index];
+                        if (item is String) {
+                          return CategoryHeader(categoryName: item);
+                        } else if (item is IPDevice) {
+                          return DeviceRow(
+                            device: item,
+                            index: index, // this index will be offset by headers, which is actually fine for background row color variation
+                          );
+                        }
+                        return const SizedBox.shrink();
                       },
                     ),
             ),

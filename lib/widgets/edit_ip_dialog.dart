@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/ip_device.dart';
 import '../providers/ip_checker_provider.dart';
 import '../services/ping_service.dart';
 
-class AddIPDialog extends StatefulWidget {
-  const AddIPDialog({Key? key}) : super(key: key);
+class EditIPDialog extends StatefulWidget {
+  final IPDevice device;
+
+  const EditIPDialog({Key? key, required this.device}) : super(key: key);
 
   @override
-  State<AddIPDialog> createState() => _AddIPDialogState();
+  State<EditIPDialog> createState() => _EditIPDialogState();
 }
 
-class _AddIPDialogState extends State<AddIPDialog> {
-  final _ipController = TextEditingController();
-  final _labelController = TextEditingController();
-  final _categoryController = TextEditingController(text: 'General');
+class _EditIPDialogState extends State<EditIPDialog> {
+  late final TextEditingController _ipController;
+  late final TextEditingController _labelController;
+  late final TextEditingController _categoryController;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _ipController = TextEditingController(text: widget.device.ip);
+    _labelController = TextEditingController(text: widget.device.label);
+    _categoryController = TextEditingController(text: widget.device.category);
+  }
 
   @override
   void dispose() {
@@ -27,7 +38,7 @@ class _AddIPDialogState extends State<AddIPDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Single IP'),
+      title: const Text('Edit Device'),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       content: SizedBox(
         width: 400,
@@ -83,7 +94,8 @@ class _AddIPDialogState extends State<AddIPDialog> {
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              context.read<IPCheckerProvider>().addManualIP(
+              context.read<IPCheckerProvider>().editDevice(
+                    widget.device.id,
                     _ipController.text.trim(),
                     _labelController.text.trim(),
                     _categoryController.text.trim().isEmpty ? 'General' : _categoryController.text.trim(),
@@ -91,7 +103,7 @@ class _AddIPDialogState extends State<AddIPDialog> {
               Navigator.of(context).pop();
             }
           },
-          child: const Text('Add IP'),
+          child: const Text('Save'),
         ),
       ],
     );

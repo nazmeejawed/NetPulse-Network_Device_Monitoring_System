@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:local_notifier/local_notifier.dart';
 import 'theme/app_theme.dart';
 import 'providers/ip_checker_provider.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await localNotifier.setup(
+    appName: 'Netpulse',
+    shortcutPolicy: ShortcutPolicy.requireCreate,
+  );
   runApp(const IPCheckerApp());
 }
 
@@ -18,7 +24,7 @@ class IPCheckerApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => IPCheckerProvider()),
       ],
       child: MaterialApp(
-        title: 'IP Checker',
+        title: 'Netpulse',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const HomeScreen(),

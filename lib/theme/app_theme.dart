@@ -1,58 +1,70 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF1976D2);
-  static const Color surfaceColor = Color(0xFFF5F7FA);
-  static const Color backgroundColor = Color(0xFFFFFFFF);
+  // Minimalist Palette
+  static const Color primaryColor = Color(0xFF0F172A); // Deep Slate
+  static const Color surfaceColor = Color(0xFFFFFFFF);
+  static const Color backgroundColor = Color(0xFFF9FAFB);
   
-  static const Color onlineColor = Colors.green;
-  static const Color offlineColor = Colors.red;
-  static const Color checkingColor = Colors.orange;
-  static const Color idleColor = Colors.grey;
+  // Pastel, soft status colors
+  static const Color onlineColor = Color(0xFF10B981); // Emerald
+  static const Color offlineColor = Color(0xFFEF4444); // Soft Red
+  static const Color checkingColor = Color(0xFFF59E0B); // Soft Amber
+  static const Color idleColor = Color(0xFF9CA3AF); // Cool Grey
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
+        brightness: Brightness.light,
         surface: backgroundColor,
+        primary: primaryColor,
       ),
       scaffoldBackgroundColor: backgroundColor,
       fontFamily: 'Inter',
       appBarTheme: const AppBarTheme(
         backgroundColor: backgroundColor,
-        foregroundColor: Colors.black87,
+        foregroundColor: Color(0xFF111827),
         elevation: 0,
         scrolledUnderElevation: 0,
-        shadowColor: Colors.black12,
+        shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
       cardTheme: CardThemeData(
-        color: backgroundColor,
-        elevation: 2,
-        shadowColor: Colors.black12,
+        color: surfaceColor,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryColor,
-          side: const BorderSide(color: primaryColor),
+          side: const BorderSide(color: Color(0xFFE5E7EB), width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surfaceColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
