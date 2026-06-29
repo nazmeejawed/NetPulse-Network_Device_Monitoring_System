@@ -95,12 +95,12 @@ class _HoverAnimatedCardState extends State<_HoverAnimatedCard> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: widget.color.withOpacity(_isHovered ? 0.15 : 0.05),
+              color: widget.color.withValues(alpha: _isHovered ? 0.15 : 0.05),
               blurRadius: _isHovered ? 20 : 10,
               offset: const Offset(0, 4),
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(_isHovered ? 0.08 : 0.03),
+              color: Colors.black.withValues(alpha: _isHovered ? 0.08 : 0.03),
               blurRadius: _isHovered ? 12 : 6,
               offset: const Offset(0, 2),
             ),
@@ -113,7 +113,7 @@ class _HoverAnimatedCardState extends State<_HoverAnimatedCard> {
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: widget.color.withOpacity(_isHovered ? 0.2 : 0.1),
+                color: widget.color.withValues(alpha: _isHovered ? 0.2 : 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(widget.icon, size: 28, color: widget.color),

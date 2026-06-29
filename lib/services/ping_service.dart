@@ -30,8 +30,8 @@ class PingService {
       if (Platform.isWindows) {
         result = await Process.run('ping', ['-n', '1', '-w', '2000', ip]);
       } else if (Platform.isMacOS) {
-        // macOS -W is in milliseconds
-        result = await Process.run('ping', ['-c', '1', '-W', '2000', ip]);
+        // macOS -W is in seconds
+        result = await Process.run('ping', ['-c', '1', '-W', '2', ip]);
       } else {
         // Linux -W is in seconds
         result = await Process.run('ping', ['-c', '1', '-W', '2', ip]);
@@ -44,7 +44,10 @@ class PingService {
       if (Platform.isWindows) {
         isOnline = stdout.contains('ttl=');
       } else {
-        isOnline = stdout.contains('1 packets received') || stdout.contains('1 received');
+        isOnline = stdout.contains('1 packets received') ||
+            stdout.contains('1 received') ||
+            stdout.contains('0% packet loss') ||
+            stdout.contains('0.0% packet loss');
       }
 
       if (isOnline) {

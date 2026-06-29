@@ -13,6 +13,7 @@ enum FilterMode { all, online, offline }
 
 class IPCheckerProvider extends ChangeNotifier {
   final List<IPDevice> _devices = [];
+  bool _isDisposed = false;
 
   IPCheckerProvider() {
     _loadDevices();
@@ -148,7 +149,13 @@ class IPCheckerProvider extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    if (!_isDisposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _isDisposed = true;
     _autoMonitorTimer?.cancel();
     super.dispose();
   }

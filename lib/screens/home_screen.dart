@@ -27,12 +27,16 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset('assets/logo.png', height: 42, fit: BoxFit.cover),
             const SizedBox(width: 12),
-            const Text(
-              'Netpulse',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            const Flexible(
+              child: Text(
+                'Netpulse',
+                style: TextStyle(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -98,9 +102,9 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: AppTheme.onlineColor.withOpacity(0.1),
+                        color: AppTheme.onlineColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.onlineColor.withOpacity(0.3)),
+                        border: Border.all(color: AppTheme.onlineColor.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -143,9 +147,9 @@ class HomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: AppTheme.offlineColor.withOpacity(0.1),
+                        color: AppTheme.offlineColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.offlineColor.withOpacity(0.3)),
+                        border: Border.all(color: AppTheme.offlineColor.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -206,23 +210,31 @@ class HomeScreen extends StatelessWidget {
             
             // Table Body
             Expanded(
-              child: provider.groupedListItems.isEmpty
-                  ? const Center(child: Text('No devices found.'))
-                  : ListView.builder(
-                      itemCount: provider.groupedListItems.length,
-                      itemBuilder: (context, index) {
-                        final item = provider.groupedListItems[index];
-                        if (item is String) {
-                          return CategoryHeader(categoryName: item);
-                        } else if (item is IPDevice) {
-                          return DeviceRow(
-                            device: item,
-                            index: index, // this index will be offset by headers, which is actually fine for background row color variation
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+              child: Builder(
+                builder: (context) {
+                  final items = provider.groupedListItems;
+                  if (items.isEmpty) {
+                    return const Center(child: Text('No devices found.'));
+                  }
+                  int deviceNumber = 0;
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      if (item is String) {
+                        return CategoryHeader(categoryName: item);
+                      } else if (item is IPDevice) {
+                        deviceNumber++;
+                        return DeviceRow(
+                          device: item,
+                          index: deviceNumber - 1,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

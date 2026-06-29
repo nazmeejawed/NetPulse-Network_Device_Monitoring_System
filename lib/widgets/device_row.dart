@@ -62,7 +62,7 @@ class DeviceRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -87,7 +87,7 @@ class DeviceRow extends StatelessWidget {
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedDefaultTextStyle(
@@ -156,7 +156,7 @@ class DeviceRow extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 20),
-                  color: AppTheme.primaryColor.withOpacity(0.8),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.8),
                   splashRadius: 20,
                   tooltip: 'Edit',
                   onPressed: () {
@@ -168,7 +168,7 @@ class DeviceRow extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.refresh, size: 20),
-                  color: AppTheme.primaryColor.withOpacity(0.6),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.6),
                   splashRadius: 20,
                   tooltip: 'Re-ping',
                   onPressed: () {
@@ -177,7 +177,7 @@ class DeviceRow extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  color: AppTheme.offlineColor.withOpacity(0.8),
+                  color: AppTheme.offlineColor.withValues(alpha: 0.8),
                   splashRadius: 20,
                   tooltip: 'Remove',
                   onPressed: () {
