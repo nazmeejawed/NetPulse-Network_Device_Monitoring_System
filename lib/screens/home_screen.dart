@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/ip_checker_provider.dart';
 import '../widgets/stats_cards.dart';
@@ -24,12 +25,33 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<IPCheckerProvider>();
 
-    return Scaffold(
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.keyR, meta: true): () {
+          if (!provider.isPinging && provider.devices.isNotEmpty) {
+            provider.pingAll();
+          }
+        },
+        const SingleActivator(LogicalKeyboardKey.f5): () {
+          if (!provider.isPinging && provider.devices.isNotEmpty) {
+            provider.pingAll();
+          }
+        },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/logo.png', height: 42, fit: BoxFit.cover),
+            Image.asset(
+              'assets/logo.png',
+              height: 42,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.network_ping, size: 32),
+            ),
             const SizedBox(width: 12),
             const Flexible(
               child: Text(
@@ -239,6 +261,8 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
+    ),
     );
   }
 }

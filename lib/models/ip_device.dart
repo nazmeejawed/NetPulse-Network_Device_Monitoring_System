@@ -1,5 +1,8 @@
 enum DeviceStatus { idle, checking, online, offline }
 
+// Sentinel to distinguish "not passed" from "explicitly null"
+const _sentinel = Object();
+
 class IPDevice {
   final String id;
   final String ip;
@@ -43,8 +46,8 @@ class IPDevice {
     String? label,
     String? category,
     DeviceStatus? status,
-    double? pingMs,
-    DateTime? lastChecked,
+    Object? pingMs = _sentinel,
+    Object? lastChecked = _sentinel,
   }) {
     return IPDevice(
       id: id ?? this.id,
@@ -52,8 +55,9 @@ class IPDevice {
       label: label ?? this.label,
       category: category ?? this.category,
       status: status ?? this.status,
-      pingMs: pingMs ?? this.pingMs,
-      lastChecked: lastChecked ?? this.lastChecked,
+      pingMs: pingMs == _sentinel ? this.pingMs : pingMs as double?,
+      lastChecked: lastChecked == _sentinel ? this.lastChecked : lastChecked as DateTime?,
     );
   }
 }
+

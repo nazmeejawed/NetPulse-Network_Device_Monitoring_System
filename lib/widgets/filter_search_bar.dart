@@ -1,9 +1,30 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/ip_checker_provider.dart';
 
-class FilterSearchBar extends StatelessWidget {
+class FilterSearchBar extends StatefulWidget {
   const FilterSearchBar({Key? key}) : super(key: key);
+
+  @override
+  State<FilterSearchBar> createState() => _FilterSearchBarState();
+}
+
+class _FilterSearchBarState extends State<FilterSearchBar> {
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      context.read<IPCheckerProvider>().setSearchQuery(value);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +52,9 @@ class FilterSearchBar extends StatelessWidget {
                 provider.setFilterMode(newSelection.first);
               },
               style: ButtonStyle(
-                padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
-                textStyle: MaterialStateProperty.all(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                shape: MaterialStateProperty.all(
+                padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
+                textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                shape: WidgetStateProperty.all(
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
@@ -50,9 +71,7 @@ class FilterSearchBar extends StatelessWidget {
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
-                onChanged: (value) {
-                  provider.setSearchQuery(value);
-                },
+                onChanged: _onSearchChanged,
               ),
             ),
           ],
