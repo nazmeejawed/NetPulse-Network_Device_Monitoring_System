@@ -5,14 +5,33 @@ import '../providers/ip_checker_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/edit_ip_dialog.dart';
 
-class DeviceRow extends StatelessWidget {
+class DeviceRow extends StatefulWidget {
   final IPDevice device;
   final int index;
 
   const DeviceRow({Key? key, required this.device, required this.index}) : super(key: key);
 
   @override
+  State<DeviceRow> createState() => _DeviceRowState();
+}
+
+class _DeviceRowState extends State<DeviceRow> {
+  double _previousPingMs = 0;
+
+  @override
+  void didUpdateWidget(DeviceRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Store the old ping value so the tween animates from previous → new
+    if (oldWidget.device.pingMs != null) {
+      _previousPingMs = oldWidget.device.pingMs!;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final device = widget.device;
+    final index = widget.index;
+
     Color statusColor;
     String statusText;
     
@@ -121,7 +140,7 @@ class DeviceRow extends StatelessWidget {
             flex: 1,
             child: device.status == DeviceStatus.online && device.pingMs != null
                 ? TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: device.pingMs!),
+                    tween: Tween<double>(begin: _previousPingMs, end: device.pingMs!),
                     duration: const Duration(milliseconds: 600),
                     curve: Curves.easeOutQuart,
                     builder: (context, val, child) {
@@ -211,3 +230,4 @@ class DeviceRow extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show Timer, unawaited;
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -14,6 +14,7 @@ enum FilterMode { all, online, offline }
 class IPCheckerProvider extends ChangeNotifier {
   final List<IPDevice> _devices = [];
   bool _isDisposed = false;
+  bool _hasCompletedFirstPing = false;
 
   IPCheckerProvider() {
     _loadDevices();
@@ -134,7 +135,7 @@ class IPCheckerProvider extends ChangeNotifier {
 
     if (_isAutoMonitoring) {
       _autoMonitorTimer?.cancel();
-      _autoMonitorTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _autoMonitorTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
         if (!_isPinging && _devices.isNotEmpty) {
           pingAll();
         }
@@ -229,7 +230,7 @@ class IPCheckerProvider extends ChangeNotifier {
       category: category,
     );
     _devices.add(newDevice);
-    _saveDevices();
+    unawaited(_saveDevices());
     notifyListeners();
     pingOne(newDevice.id);
   }
@@ -244,7 +245,7 @@ class IPCheckerProvider extends ChangeNotifier {
         category: newCategory,
         status: DeviceStatus.idle,
       );
-      _saveDevices();
+      unawaited(_saveDevices());
       notifyListeners();
       pingOne(id);
     }
@@ -252,13 +253,13 @@ class IPCheckerProvider extends ChangeNotifier {
 
   void removeDevice(String id) {
     _devices.removeWhere((d) => d.id == id);
-    _saveDevices();
+    unawaited(_saveDevices());
     notifyListeners();
   }
 
   void clearAll() {
     _devices.clear();
-    _saveDevices();
+    unawaited(_saveDevices());
     _pingedCount = 0;
     _isPinging = false;
     notifyListeners();
@@ -280,7 +281,8 @@ class IPCheckerProvider extends ChangeNotifier {
       final isOnline = result.isOnline;
       _devices[checkIndex].status = isOnline ? DeviceStatus.online : DeviceStatus.offline;
       
-      if (wasOnline && !isOnline) {
+      // Only alert if the device was confirmed online before and is now offline
+      if (_hasCompletedFirstPing && wasOnline && !isOnline) {
          _triggerDesktopAlert(ip, _devices[checkIndex].label);
       }
       _devices[checkIndex].pingMs = result.pingMs;
@@ -297,27 +299,37 @@ class IPCheckerProvider extends ChangeNotifier {
     _successMessage = null;
     
     final Map<String, bool> wasOnlineMap = {};
+    // Snapshot device IDs to avoid data race if devices are added/removed mid-ping
+    final deviceIds = <String>[];
     for (var device in _devices) {
       wasOnlineMap[device.id] = device.status == DeviceStatus.online;
       device.status = DeviceStatus.checking;
+      deviceIds.add(device.id);
     }
+    final totalDeviceCount = deviceIds.length;
     notifyListeners();
 
     const chunkSize = 10;
-    for (int i = 0; i < _devices.length; i += chunkSize) {
+    for (int i = 0; i < deviceIds.length; i += chunkSize) {
       if (!_isPinging) break;
 
-      final end = (i + chunkSize < _devices.length) ? i + chunkSize : _devices.length;
-      final chunk = _devices.sublist(i, end);
+      final end = (i + chunkSize < deviceIds.length) ? i + chunkSize : deviceIds.length;
+      final chunkIds = deviceIds.sublist(i, end);
 
-      await Future.wait(chunk.map((device) async {
+      await Future.wait(chunkIds.map((deviceId) async {
+        final deviceIndex = _devices.indexWhere((d) => d.id == deviceId);
+        if (deviceIndex == -1) return; // Device was removed during ping
+
+        final device = _devices[deviceIndex];
         final result = await PingService.ping(device.ip);
-        final checkIndex = _devices.indexWhere((d) => d.id == device.id);
+
+        // Re-check index in case list was modified
+        final checkIndex = _devices.indexWhere((d) => d.id == deviceId);
         if (checkIndex != -1) {
           final isOnline = result.isOnline;
           _devices[checkIndex].status = isOnline ? DeviceStatus.online : DeviceStatus.offline;
           
-          if (wasOnlineMap[device.id] == true && !isOnline) {
+          if (_hasCompletedFirstPing && wasOnlineMap[deviceId] == true && !isOnline) {
              _triggerDesktopAlert(device.ip, _devices[checkIndex].label);
           }
           _devices[checkIndex].pingMs = result.pingMs;
@@ -329,7 +341,8 @@ class IPCheckerProvider extends ChangeNotifier {
     }
 
     _isPinging = false;
-    if (_pingedCount == _devices.length && !_isAutoMonitoring) {
+    _hasCompletedFirstPing = true;
+    if (_pingedCount == totalDeviceCount && !_isAutoMonitoring) {
        _successMessage = "Scan Complete — $onlineCount Online, $offlineCount Offline out of ${_devices.length} devices";
        Future.delayed(const Duration(seconds: 3), () {
          clearMessages();
