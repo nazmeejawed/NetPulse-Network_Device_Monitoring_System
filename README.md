@@ -1,5 +1,7 @@
 # 🚀 NetPulse
 
+![NetPulse Live Demo](/assets/app_view.png)
+
 A Flutter-based Network Device Monitoring application that allows users to upload Excel or CSV files containing IP addresses and instantly check device availability using local system ping commands.
 
 > ⚡ No Database • 🔒 100% Local Processing • 📊 Bulk IP Monitoring
